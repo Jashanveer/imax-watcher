@@ -1,0 +1,46 @@
+# =============================================================================
+# IMAX Ticket Watcher - configuration
+# =============================================================================
+# This is the ONLY file most people need to edit.
+# Change the values, commit, and you're done.
+# =============================================================================
+
+# The movie you're watching for. Partial matches work:
+# "Odyssey" will match "The Odyssey".
+movie_title: "The Odyssey"
+
+# Which source to check.
+#   fandango  -> national search by zip code (AMC, Regal, Cinemark, etc.)
+#   venue     -> a single specific ticketing page (see venue_url below)
+mode: "fandango"
+
+# ---- Settings for mode: fandango ----
+# Your 5-digit US zip code. Fandango sorts theaters by distance from here.
+zip_code: "22030"
+
+# Only alert for IMAX screenings? Set false to alert on any format.
+imax_only: true
+
+# ---- Settings for mode: venue ----
+# Used only when mode is "venue". Point this at a specific ticketing page
+# for a single theater - useful for museum/independent screens that don't
+# list on Fandango (science centers, planetariums, Smithsonian, etc.).
+# Example (Smithsonian Lockheed Martin IMAX, Washington DC):
+venue_url: "https://mpv.tickets.com/schedule/?agency=SETH_SNG_MPV&orgid=51529#/?venue=Lockheed+IMAX+Theater%2C+Washington%2C+DC&event=odyssey&view=list&includePackages=false"
+
+# ---- Notifications ----
+# A GitHub Issue is always opened on your own repo when something new is
+# found. GitHub emails you about issues in your own repos automatically,
+# so this needs zero credentials.
+#
+# Optional: also send a direct email. If you want this, set enabled: true
+# and add the three repo secrets described in the README
+# (MAIL_USERNAME, MAIL_PASSWORD, MAIL_TO).
+email:
+  enabled: false
+  smtp_server: "smtp.gmail.com"
+  smtp_port: 587
+
+# How long to let the page's JavaScript render before reading it (seconds).
+# Bump this up if you're getting empty results on a slow-loading page.
+render_wait_seconds: 6

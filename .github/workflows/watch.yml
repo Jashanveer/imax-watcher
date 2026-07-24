@@ -1,0 +1,61 @@
+name: Watch for tickets
+
+on:
+  schedule:
+    # Every 15 minutes. GitHub's scheduler is best-effort - during busy
+    # periods runs can be delayed or occasionally skipped. If you want to
+    # check less often (and be a lighter load on GitHub), try "*/30 * * * *".
+    - cron: "*/15 * * * *"
+  workflow_dispatch:        # lets you trigger a run manually from the Actions tab
+
+# Needed so the workflow can open an issue and commit its state file.
+permissions:
+  contents: write
+  issues: write
+
+# If a run is still going when the next one fires, don't stack them up.
+concurrency:
+  group: ticket-watcher
+  cancel-in-progress: false
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check out the repo
+        uses: actions/checkout@v4
+
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: "3.11"
+
+      - name: Install dependencies
+        run: |
+          pip install playwright pyyaml requests
+          playwright install --with-deps chromium
+
+      - name: Run the watcher
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          # These three are optional - only needed if you turned email on
+          # in config.yml. If you haven't set them, they're simply empty
+          # and the script skips email.
+          MAIL_USERNAME: ${{ secrets.MAIL_USERNAME }}
+          MAIL_PASSWORD: ${{ secrets.MAIL_PASSWORD }}
+          MAIL_TO: ${{ secrets.MAIL_TO }}
+        run: python watcher.py
+
+      - name: Remember what we saw this run
+        run: |
+          if [[ -n "$(git status --porcelain state.json)" ]]; then
+            git config user.name  "Jashanveer Singh"
+            git config user.email "46222503+Jashanveer@users.noreply.github.com"
+            git add state.json
+            git commit -m "Update watcher state [skip ci]"
+            # Someone else's run may have pushed while we worked - rebase and retry.
+            git pull --rebase --autostash origin ${{ github.ref_name }} || true
+            git push
+          else
+            echo "No state change."
+          fi
