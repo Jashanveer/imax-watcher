@@ -327,9 +327,16 @@ def run_check():
         signals = extract_venue(text)
 
     previous = load_state()
+    # A real prior run always stores the page text. If it's empty, this is the
+    # very first run: record what's there as the baseline but DON'T alert -
+    # you care about newly-appearing showtimes, not whatever already existed.
+    first_run = not previous.get("text")
     new_signals = sorted(set(signals) - set(previous.get("signals", [])))
 
-    if new_signals:
+    if first_run:
+        print(f"  Baseline set - tracking {len(signals)} current listing(s). "
+              "No alert on the first run.")
+    elif new_signals:
         print(f"  Found {len(new_signals)} new signal(s).")
         def humanize(s):
             if s.startswith("__buy_buttons__:"):
